@@ -94,6 +94,15 @@
       <Link>Microsoft.CodeAnalysis.VisualBasic.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="..\..\resource\sample\Sample1.vb">
+      <Link>resource\sample\Sample1.vb</Link>
+    </Content>
+    <Content Include="..\..\resource\sample\Sample2.vb">
+      <Link>resource\sample\Sample2.vb</Link>
+    </Content>
+    <Content Include="..\..\resource\sample\Sample3.vb">
+      <Link>resource\sample\Sample3.vb</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
