@@ -21,14 +21,14 @@ namespace resource.package
             public const string EXTENSION = ".VB";
             public const string GUID = "E91ECA80-9650-47F4-91CD-EFBA501DDAA8";
             public const string NAME = "Preview-VB";
-            public const string VERSION = "1.0.4";
+            public const string VERSION = "1.0.5";
         }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             {
                 cartridge.AnyPreview.Connect();
-                cartridge.AnyPreview.Register(cartridge.AnyPreview.MODE.PREVIEW, CONSTANT.EXTENSION, new preview.VB());
+                cartridge.AnyPreview.Register(cartridge.AnyPreview.MODE.PREVIEW, CONSTANT.EXTENSION, new preview.VSPreview());
             }
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
