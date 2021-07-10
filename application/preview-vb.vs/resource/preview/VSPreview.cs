@@ -8,245 +8,217 @@ using System.Linq;
 
 namespace resource.preview
 {
-    internal class VSPreview : cartridge.AnyPreview
+    internal class VSPreview : extension.AnyPreview
     {
         internal class HINT
         {
-            public static string DATA_TYPE = "[[Data type]]";
-            public static string METHOD_TYPE = "[[Method type]]";
+            public static string DATA_TYPE = "[[[Data Type]]]";
+            public static string METHOD_TYPE = "[[[Method Type]]]";
         }
 
-        protected override void _Execute(atom.Trace context, string url, int level)
+        protected override void _Execute(atom.Trace context, int level, string url, string file)
         {
-            var a_Context = VisualBasicSyntaxTree.ParseText(File.ReadAllText(url)).WithFilePath(url).GetRoot();
-            var a_IsFound = GetProperty(NAME.PROPERTY.DEBUGGING_SHOW_PRIVATE) != 0;
+            var a_Context = VisualBasicSyntaxTree.ParseText(File.ReadAllText(file)).WithFilePath(file).GetRoot();
+            var a_IsFound = GetProperty(NAME.PROPERTY.DEBUGGING_SHOW_PRIVATE, true) != 0;
             if (a_Context == null)
             {
                 return;
             }
             {
-                context.
-                    SetState(NAME.STATE.HEADER).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Info]]");
+                context.Send(NAME.SOURCE.PREVIEW, NAME.TYPE.HEADER, level, "[[[Info]]]");
                 {
-                    context.
-                        SetValue(url).
-                        Send(NAME.SOURCE.PREVIEW, NAME.TYPE.VARIABLE, level + 1, "[[File Name]]");
-                    context.
-                        SetValue(a_Context.GetText().Length.ToString()).
-                        Send(NAME.SOURCE.PREVIEW, NAME.TYPE.VARIABLE, level + 1, "[[File Size]]");
-                    context.
-                        SetValue(a_Context.Language).
-                        Send(NAME.SOURCE.PREVIEW, NAME.TYPE.VARIABLE, level + 1, "[[Language]]");
+                    context.Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level + 1, "[[[File Name]]]", url);
+                    context.Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level + 1, "[[[File Size]]]", a_Context.GetText().Length.ToString());
+                    context.Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level + 1, "[[[Language]]]", a_Context.Language);
                 }
             }
             if (a_Context.DescendantNodes().OfType<ImportsStatementSyntax>().Any())
             {
                 context.
-                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<ImportsStatementSyntax>()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Dependencies]]");
+                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<ImportsStatementSyntax>())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[[Dependencies]]]");
                 foreach (var a_Context1 in a_Context.DescendantNodes().OfType<ImportsStatementSyntax>())
                 {
-                    __Execute(a_Context1, level + 1, context, url);
+                    __Execute(context, level + 1, a_Context1, file);
                 }
             }
             if (a_Context.DescendantNodes().OfType<ClassBlockSyntax>().Any())
             {
                 context.
-                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<ClassBlockSyntax>()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Classes]]");
+                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<ClassBlockSyntax>())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[[Classes]]]");
                 foreach (var a_Context1 in a_Context.DescendantNodes().OfType<ClassBlockSyntax>())
                 {
-                    __Execute(a_Context1, level + 1, context, url, a_IsFound);
+                    __Execute(context, level + 1, a_Context1, file, a_IsFound);
                 }
             }
             if (a_Context.DescendantNodes().OfType<StructureBlockSyntax>().Any())
             {
                 context.
-                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<StructureBlockSyntax>()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Structs]]");
+                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<StructureBlockSyntax>())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[[Structs]]]");
                 foreach (var a_Context1 in a_Context.DescendantNodes().OfType<StructureBlockSyntax>())
                 {
-                    __Execute(a_Context1, level + 1, context, url, a_IsFound);
+                    __Execute(context, level + 1, a_Context1, file, a_IsFound);
                 }
             }
             if (a_Context.DescendantNodes().OfType<EnumBlockSyntax>().Any())
             {
                 context.
-                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<EnumBlockSyntax>()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Enums]]");
+                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<EnumBlockSyntax>())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[[Enums]]]");
                 foreach (var a_Context1 in a_Context.DescendantNodes().OfType<EnumBlockSyntax>())
                 {
-                    __Execute(a_Context1, level + 1, context, url, a_IsFound);
+                    __Execute(context, level + 1, a_Context1, file, a_IsFound);
                 }
             }
             if (a_Context.DescendantNodes().OfType<MethodBlockSyntax>().Any())
             {
                 context.
-                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<MethodBlockSyntax>()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[Functions]]");
+                    SetComment(__GetArraySize(a_Context.DescendantNodes().OfType<MethodBlockSyntax>())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FOLDER, level, "[[[Functions]]]");
                 foreach (var a_Context1 in a_Context.DescendantNodes().OfType<MethodBlockSyntax>())
                 {
-                    __Execute(a_Context1, level + 1, context, url, true, a_IsFound);
+                    __Execute(context, level + 1, a_Context1, file, true, a_IsFound);
                 }
             }
             if (a_Context.GetDiagnostics().Any())
             {
                 context.
                     SendPreview(NAME.TYPE.ERROR, url).
-                    SetState(NAME.STATE.FOOTER).
-                    SetComment(__GetArraySize(a_Context.GetDiagnostics()), "").
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.ERROR, level, "[[Diagnostics]]");
+                    SetComment(__GetArraySize(a_Context.GetDiagnostics())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.ERROR, level, "[[[Diagnostics]]]");
                 foreach (var a_Context1 in a_Context.GetDiagnostics())
                 {
-                    __Execute(a_Context1, level + 1, context, url);
+                    __Execute(context, level + 1, a_Context1, file);
                 }
             }
         }
 
-        private static void __Execute(Diagnostic node, int level, atom.Trace context, string url)
+        private static void __Execute(atom.Trace context, int level, Diagnostic data, string file)
         {
             context.
-                SetState(__GetSeverity(node)).
-                SetUrl(url, "").
-                SetUrlLine(__GetLine(node.Location)).
-                SetUrlPosition(__GetPosition(node.Location)).
-                SetUrlInfo("https://www.bing.com/search?q=" + node.Id, "").
-                Send(NAME.SOURCE.PREVIEW, NAME.TYPE.INFO, level, node.Descriptor?.MessageFormat?.ToString());
+                SetUrl(file, __GetLine(data.Location), __GetPosition(data.Location)).
+                SetUrlInfo("https://www.bing.com/search?q=" + data.Id).
+                Send(NAME.SOURCE.PREVIEW, __GetType(data), level, data.Descriptor?.MessageFormat?.ToString());
         }
 
-        private static void __Execute(ImportsStatementSyntax node, int level, atom.Trace context, string url)
+        private static void __Execute(atom.Trace context, int level, ImportsStatementSyntax data, string file)
         {
             context.
                 SetComment("Imports", HINT.DATA_TYPE).
-                SetUrl(url, "").
-                SetUrlLine(__GetLine(node.GetLocation())).
-                SetUrlPosition(__GetPosition(node.GetLocation())).
-                Send(NAME.SOURCE.PREVIEW, NAME.TYPE.INFO, level, node.ImportsClauses.ToString());
+                SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FILE, level, data.ImportsClauses.ToString());
         }
 
-        private static void __Execute(ClassBlockSyntax node, int level, atom.Trace context, string url, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, ClassBlockSyntax data, string file, bool isShowPrivate)
         {
-            if (__IsEnabled(node.BlockStatement.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.BlockStatement.Modifiers, isShowPrivate))
             {
                 context.
                     SetComment("Class", HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(node, true));
-                foreach (var a_Context in node.Members.OfType<MethodBlockSyntax>())
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(data, true));
+                foreach (var a_Context in data.Members.OfType<MethodBlockSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, false, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, false, isShowPrivate);
                 }
-                foreach (var a_Context in node.Members.OfType<PropertyBlockSyntax>())
+                foreach (var a_Context in data.Members.OfType<PropertyBlockSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, isShowPrivate);
                 }
-                foreach (var a_Context in node.Members.OfType<FieldDeclarationSyntax>())
+                foreach (var a_Context in data.Members.OfType<FieldDeclarationSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, isShowPrivate);
                 }
             }
         }
 
-        private static void __Execute(EnumBlockSyntax node, int level, atom.Trace context, string url, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, EnumBlockSyntax data, string file, bool isShowPrivate)
         {
-            if (__IsEnabled(node.EnumStatement.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.EnumStatement.Modifiers, isShowPrivate))
             {
                 context.
-                    SetComment(__GetType(node.EnumStatement.Modifiers, "Enum"), HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(node, true));
-                foreach (var a_Context in node.Members.OfType<EnumMemberDeclarationSyntax>())
+                    SetComment(__GetType(data.EnumStatement.Modifiers, "Enum"), HINT.DATA_TYPE).
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(data, true));
+                foreach (var a_Context in data.Members.OfType<EnumMemberDeclarationSyntax>())
                 {
                     context.
                         SetComment("Integer", HINT.DATA_TYPE).
-                        SetUrl(url, "").
-                        SetUrlLine(__GetLine(a_Context.GetLocation())).
-                        SetUrlPosition(__GetPosition(a_Context.GetLocation())).
-                        Send(NAME.SOURCE.PREVIEW, NAME.TYPE.INFO, level + 1, a_Context.Identifier.ValueText);
+                        SetUrl(file, __GetLine(a_Context.GetLocation()), __GetPosition(a_Context.GetLocation())).
+                        Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level + 1, a_Context.Identifier.ValueText);
                 }
             }
         }
 
-        private static void __Execute(StructureBlockSyntax node, int level, atom.Trace context, string url, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, StructureBlockSyntax data, string file, bool isShowPrivate)
         {
-            if (__IsEnabled(node.StructureStatement.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.StructureStatement.Modifiers, isShowPrivate))
             {
                 context.
-                    SetComment(__GetType(node.StructureStatement.Modifiers, "Struct"), HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(node, true));
-                foreach (var a_Context in node.Members.OfType<MethodBlockSyntax>())
+                    SetComment(__GetType(data.StructureStatement.Modifiers, "Struct"), HINT.DATA_TYPE).
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.CLASS, level, __GetName(data, true));
+                foreach (var a_Context in data.Members.OfType<MethodBlockSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, false, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, false, isShowPrivate);
                 }
-                foreach (var a_Context in node.Members.OfType<PropertyBlockSyntax>())
+                foreach (var a_Context in data.Members.OfType<PropertyBlockSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, isShowPrivate);
                 }
-                foreach (var a_Context in node.Members.OfType<FieldDeclarationSyntax>())
+                foreach (var a_Context in data.Members.OfType<FieldDeclarationSyntax>())
                 {
-                    __Execute(a_Context, level + 1, context, url, isShowPrivate);
+                    __Execute(context, level + 1, a_Context, file, isShowPrivate);
                 }
             }
         }
 
-        private static void __Execute(MethodBlockSyntax node, int level, atom.Trace context, string url, bool isFullName, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, MethodBlockSyntax data, string file, bool isFullName, bool isShowPrivate)
         {
-            if (__IsEnabled(node.BlockStatement.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.BlockStatement.Modifiers, isShowPrivate))
             {
                 context.
-                    SetComment(__GetComment(node), HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FUNCTION, level, __GetName(node, isFullName));
+                    SetComment(__GetComment(data), HINT.DATA_TYPE).
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.FUNCTION, level, __GetName(data, isFullName));
             }
         }
 
-        private static void __Execute(PropertyBlockSyntax node, int level, atom.Trace context, string url, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, PropertyBlockSyntax data, string file, bool isShowPrivate)
         {
-            if (__IsEnabled(node.PropertyStatement.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.PropertyStatement.Modifiers, isShowPrivate))
             {
                 context.
-                    SetComment(__GetComment(node), HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    SetValue(node.PropertyStatement.Initializer?.Value?.ToString()).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level, node.PropertyStatement?.Identifier.ValueText);
+                    SetComment(__GetComment(data), HINT.DATA_TYPE).
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    SetValue(data.PropertyStatement.Initializer?.Value?.ToString()).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.PARAMETER, level, data.PropertyStatement?.Identifier.ValueText);
             }
         }
 
-        private static void __Execute(FieldDeclarationSyntax node, int level, atom.Trace context, string url, bool isShowPrivate)
+        private static void __Execute(atom.Trace context, int level, FieldDeclarationSyntax data, string file, bool isShowPrivate)
         {
-            if (__IsEnabled(node.Modifiers, isShowPrivate))
+            if (__IsEnabled(data.Modifiers, isShowPrivate))
             {
                 context.
-                    SetComment(__GetComment(node), HINT.DATA_TYPE).
-                    SetUrl(url, "").
-                    SetUrlLine(__GetLine(node.GetLocation())).
-                    SetUrlPosition(__GetPosition(node.GetLocation())).
-                    SetValue(node.Declarators.First()?.Initializer?.Value?.ToString()).
-                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.VARIABLE, level, node.Declarators.First()?.Names.First()?.ToString());
+                    SetComment(__GetComment(data), HINT.DATA_TYPE).
+                    SetUrl(file, __GetLine(data.GetLocation()), __GetPosition(data.GetLocation())).
+                    SetValue(data.Declarators.First()?.Initializer?.Value?.ToString()).
+                    Send(NAME.SOURCE.PREVIEW, NAME.TYPE.VARIABLE, level, data.Declarators.First()?.Names.First()?.ToString());
             }
         }
 
-        private static bool __IsEnabled(SyntaxTokenList value, bool isShowPrivate)
+        private static bool __IsEnabled(SyntaxTokenList data, bool isShowPrivate)
         {
-            if (GetState() == STATE.CANCEL)
+            if (GetState() == NAME.STATE.CANCEL)
             {
                 return false;
             }
             if (isShowPrivate == false)
             {
-                var a_Context = value.ToString();
+                var a_Context = data.ToString();
                 if (string.IsNullOrEmpty(a_Context) == false)
                 {
                     if (a_Context.Contains("Private"))
@@ -258,41 +230,41 @@ namespace resource.preview
             return true;
         }
 
-        private static string __GetType(SyntaxTokenList node, string typeName)
+        private static string __GetType(SyntaxTokenList data, string typeName)
         {
-            if (node != null)
+            if (data != null)
             {
-                return node.ToString().Trim() + " " + typeName;
+                return data.ToString().Trim() + " " + typeName;
             }
             return typeName;
         }
 
-        internal static string __GetArraySize(IEnumerable value)
+        private static string __GetType(Diagnostic data)
         {
-            var a_Result = 0;
-            foreach (var a_Context in value)
-            {
-                a_Result++;
-            }
-            return "[[Found]]: " + a_Result.ToString();
-        }
-
-        private static string __GetSeverity(Diagnostic node)
-        {
-            switch (node.Severity)
+            switch (data.Severity)
             {
                 case DiagnosticSeverity.Hidden: return NAME.TYPE.DEBUG;
-                case DiagnosticSeverity.Info: return NAME.TYPE.INFO;
+                case DiagnosticSeverity.Info: return NAME.TYPE.PARAMETER;
                 case DiagnosticSeverity.Warning: return NAME.TYPE.WARNING;
                 case DiagnosticSeverity.Error: return NAME.TYPE.ERROR;
             }
-            return NAME.TYPE.INFO;
+            return NAME.TYPE.PARAMETER;
         }
 
-        private static string __GetName(SyntaxNode node, bool isFullName)
+        internal static string __GetArraySize(IEnumerable data)
+        {
+            var a_Result = 0;
+            foreach (var a_Context in data)
+            {
+                a_Result++;
+            }
+            return "[[[Found]]]: " + a_Result.ToString();
+        }
+
+        private static string __GetName(SyntaxNode data, bool isFullName)
         {
             var a_Result = "";
-            var a_Context = node;
+            var a_Context = data;
             while (a_Context != null)
             {
                 if (isFullName)
@@ -336,11 +308,11 @@ namespace resource.preview
             return a_Result;
         }
 
-        private static string __GetParams(MethodBlockBaseSyntax node)
+        private static string __GetParams(MethodBlockBaseSyntax data)
         {
             var a_Result = "";
             var a_Context = "";
-            foreach (var a_Context1 in node.BlockStatement?.ParameterList.Parameters)
+            foreach (var a_Context1 in data.BlockStatement?.ParameterList.Parameters)
             {
                 if (a_Context1.AsClause != null)
                 {
@@ -353,9 +325,9 @@ namespace resource.preview
             return "(" + a_Result + ")";
         }
 
-        private static string __GetComment(MethodBlockSyntax node)
+        private static string __GetComment(MethodBlockSyntax data)
         {
-            var a_Context = node.BlockStatement as MethodStatementSyntax;
+            var a_Context = data.BlockStatement as MethodStatementSyntax;
             if (a_Context?.AsClause != null)
             {
                 return __GetType(a_Context.Modifiers, a_Context?.AsClause?.Type.ToString());
@@ -363,9 +335,9 @@ namespace resource.preview
             return __GetType(a_Context.Modifiers, "Void");
         }
 
-        private static string __GetComment(PropertyBlockSyntax node)
+        private static string __GetComment(PropertyBlockSyntax data)
         {
-            var a_Context = node.PropertyStatement;
+            var a_Context = data.PropertyStatement;
             if (a_Context?.AsClause != null)
             {
                 return __GetType(a_Context.Modifiers, (a_Context.AsClause as SimpleAsClauseSyntax)?.Type.ToString());
@@ -373,30 +345,30 @@ namespace resource.preview
             return __GetType(a_Context.Modifiers, "Void");
         }
 
-        private static string __GetComment(FieldDeclarationSyntax node)
+        private static string __GetComment(FieldDeclarationSyntax data)
         {
-            var a_Context = node.Declarators.First();
+            var a_Context = data.Declarators.First();
             if (a_Context?.AsClause != null)
             {
-                return __GetType(node.Modifiers, (a_Context.AsClause as SimpleAsClauseSyntax)?.Type.ToString());
+                return __GetType(data.Modifiers, (a_Context.AsClause as SimpleAsClauseSyntax)?.Type.ToString());
             }
-            return __GetType(node.Modifiers, "Void");
+            return __GetType(data.Modifiers, "Void");
         }
 
-        private static int __GetLine(Location node)
+        private static int __GetLine(Location data)
         {
-            if (node.Kind != LocationKind.None)
+            if (data.Kind != LocationKind.None)
             {
-                return node.GetLineSpan().StartLinePosition.Line + 1;
+                return data.GetLineSpan().StartLinePosition.Line + 1;
             }
             return 0;
         }
 
-        private static int __GetPosition(Location node)
+        private static int __GetPosition(Location data)
         {
-            if (node.Kind != LocationKind.None)
+            if (data.Kind != LocationKind.None)
             {
-                return node.GetLineSpan().StartLinePosition.Character + 1;
+                return data.GetLineSpan().StartLinePosition.Character + 1;
             }
             return 0;
         }

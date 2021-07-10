@@ -2,14 +2,14 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle(resource.package.PreviewVBPackage.CONSTANT.NAME)]
-[assembly: AssemblyDescription(resource.package.PreviewVBPackage.CONSTANT.DESCRIPTION)]
+[assembly: AssemblyTitle(resource.package.PreviewVB.CONSTANT.NAME)]
+[assembly: AssemblyDescription(resource.package.PreviewVB.CONSTANT.DESCRIPTION)]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct(resource.package.PreviewVBPackage.CONSTANT.NAME)]
-[assembly: AssemblyCopyright(resource.package.PreviewVBPackage.CONSTANT.COPYRIGHT)]
+[assembly: AssemblyProduct(resource.package.PreviewVB.CONSTANT.NAME)]
+[assembly: AssemblyCopyright(resource.package.PreviewVB.CONSTANT.COPYRIGHT)]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion(resource.package.PreviewVBPackage.CONSTANT.VERSION)]
-[assembly: AssemblyFileVersion(resource.package.PreviewVBPackage.CONSTANT.VERSION)]
+[assembly: AssemblyVersion(resource.package.PreviewVB.CONSTANT.VERSION)]
+[assembly: AssemblyFileVersion(resource.package.PreviewVB.CONSTANT.VERSION)]
