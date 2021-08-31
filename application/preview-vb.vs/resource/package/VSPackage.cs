@@ -19,7 +19,7 @@ namespace resource.package
             public const string DESCRIPTION = "Quick preview of VB files";
             public const string GUID = "E91ECA80-9650-47F4-91CD-EFBA501DDAA8";
             public const string NAME = "Preview-VB";
-            public const string VERSION = "1.0.6";
+            public const string VERSION = "1.0.7";
         }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
