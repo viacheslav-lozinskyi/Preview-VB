@@ -26,7 +26,7 @@ namespace resource.package
             public const string GUID = "E91ECA80-9650-47F4-91CD-EFBA501DDAA8";
             public const string HOST = "MetaOutput";
             public const string NAME = "Preview-VB";
-            public const string VERSION = "1.0.14";
+            public const string VERSION = "1.1.0";
         }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
